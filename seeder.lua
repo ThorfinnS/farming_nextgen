@@ -77,6 +77,22 @@ if minetest.get_modpath("compost") then
 end
 
 
+function farmingng_add_soil_type(noder)
+--	Example of Use:
+--		add optional dependency in other mod on "farming_nextgen"
+--		farmingng_add_soil_type("myNewNodes:myNewSoilType")
+
+	if(minetest.registered_items[noder] ~= nil) then
+		soil_nodenames[noder] = true
+		minetest.log("Farming NextGen added soil type "..noder)
+	else
+		minetest.log("Farming NextGen failed to add soil type "..noder)
+	end
+end
+
+
+
+
 
 farmingNG.seeder_seed = {
 -- *** farming
