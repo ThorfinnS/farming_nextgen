@@ -335,6 +335,75 @@ local function seeder_dig(pos, current_charge, seednum, seedstack, user)
 	return remaining_charge, seednum, seedstack
 end
 
+function nextgen_register_seeder(in_name, in_desc, in_png, in_durability, in_recipe)
+-- Mostly self explanatory, I think, but in_durability is fraction of the default seeder.
+-- That is, 0.5 would mean half as many seeds could be planted with this tool.
+if(minetest.registered_items["farming_nextgen"..in_name] ~= nil) then
+	minetest.log("Error. Seeder already exists - "..in_name)
+else
+	minetest.log("Creating Seeder - "..in_name)
+	  minetest.register_tool("farming_nextgen:"..in_name, {
+		  description = in_desc,
+		  groups = {soil=3,soil=2},
+		  inventory_image = in_png,
+		  stack_max=1,
+		  liquids_pointable = false,
+		  on_use = function(itemstack, user, pointed_thing)
+		    local seednum=0
+		    local name = user:get_player_name()
+		    local privs = minetest.get_player_privs(name)
+		    
+			  
+			  if pointed_thing.type ~= "node" then
+				  return itemstack
+			  end
+
+			  local charge = 65535*math.min(1,in_durability) - itemstack:get_wear()
+			  
+			  if not charge or  
+					  charge < farmingNG.seeder_charge_per_node then
+					  minetest.chat_send_player(name," *** Your device needs to be serviced")
+				  return
+			  end
+
+			  local inv = user:get_inventory()
+			  local indexnumber = user:get_wield_index()+1
+			  local seedstack = inv:get_stack("main", indexnumber)
+			  local seedname = seedstack:get_name()
+
+			  
+			  
+			  if minetest.is_protected(pointed_thing.under, name) then
+				  minetest.record_protection_violation(pointed_thing.under, name)
+				  return
+			  end
+
+			  
+			  
+			  if seedname then
+			    if check_valid_seed(seedname) or check_valid_util(seedname) then
+				charge, seednum, seedstack = seeder_dig(pointed_thing.under, charge, seednum, seedstack, user)
+				if farmingNG.chaton then
+				     minetest.chat_send_player(name,"*** You used :  "..seednum.." seeds     ".."Charge for "..math.floor(charge/farmingNG.seeder_charge_per_node).." seeds left")
+				end
+			    else
+				minetest.chat_send_player(name," *** you need valid seeds on the right side of your device")
+			    end
+			  else
+			      minetest.chat_send_player(name," *** you need valid seeds on the right side of your device")
+			  end
+			  
+			  
+			  itemstack:set_wear(65535*math.min(1,in_durability)-charge)
+			  
+			  inv:set_stack("main", indexnumber, seedstack)
+			  return itemstack
+		    
+			  
+		  end,
+	  })
+end
+end
 
 if farmingNG.havetech then
   
@@ -429,79 +498,12 @@ if farmingNG.havetech then
 	  end
 	  
 else
-	      
-	  
-	  minetest.register_tool("farming_nextgen:seeder", {
-		  description = "Automatik seeding tool",
-		  groups = {soil=3,soil=2},
-		  inventory_image = "farming_nextgen_seeder.png",
-		  stack_max=1,
-		  liquids_pointable = false,
-		  on_use = function(itemstack, user, pointed_thing)
-		    local seednum=0
-		    local name = user:get_player_name()
-		    local privs = minetest.get_player_privs(name)
-		    
-			  
-			  if pointed_thing.type ~= "node" then
-				  return itemstack
-			  end
 
-			  local charge = 65535 - itemstack:get_wear()
-			  
-			  if not charge or  
-					  charge < farmingNG.seeder_charge_per_node then
-					  minetest.chat_send_player(name," *** Your device needs to be serviced")
-				  return
-			  end
-
-			  local inv = user:get_inventory()
-			  local indexnumber = user:get_wield_index()+1
-			  local seedstack = inv:get_stack("main", indexnumber)
-			  local seedname = seedstack:get_name()
-
-			  
-			  
-			  if minetest.is_protected(pointed_thing.under, name) then
-				  minetest.record_protection_violation(pointed_thing.under, name)
-				  return
-			  end
-
-			  
-			  
-			  if seedname then
-			    if check_valid_seed(seedname) or check_valid_util(seedname) then
-				charge, seednum, seedstack = seeder_dig(pointed_thing.under, charge, seednum, seedstack, user)
-				if farmingNG.chaton then
-				     minetest.chat_send_player(name,"*** You used :  "..seednum.." seeds     ".."Charge for "..math.floor(charge/farmingNG.seeder_charge_per_node).." seeds left")
-				end
-			    else
-				minetest.chat_send_player(name," *** you need valid seeds on the right side of your device")
-			    end
-			  else
-			      minetest.chat_send_player(name," *** you need valid seeds on the right side of your device")
-			  end
-			  
-			  
-			  itemstack:set_wear(65535-charge)
-			  
-			  inv:set_stack("main", indexnumber, seedstack)
-			  return itemstack
-		    
-			  
-		  end,
-	  })
-
-	  
-
-	  minetest.register_craft({
-		  output = "farming_nextgen:seeder",
-		  recipe = {
-			  {"default:mese",                                    "default:mese_crystal_fragment",                      "default:mese"              },
-			  {"default:gold_ingot",      "default:bronze_ingot",              "default:gold_ingot"},
-			  {"default:diamond",                              "",                                 "default:diamond"},
-		  }
-	  })
+	nextgen_register_seeder("seeder", "Automatik seeding tool", "farming_nextgen_seeder.png", 1, {
+			{"default:mese","default:mese_crystal_fragment","default:mese"},
+			{"default:gold_ingot","default:bronze_ingot","default:gold_ingot"},
+			{"default:diamond","","default:diamond"}
+			})
 end
 
   
