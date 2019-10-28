@@ -402,6 +402,9 @@ else
 			  
 		  end,
 	  })
+	minetest.register_craft({
+		output = "farming_nextgen:"..in_name,
+		recipe = in_recipe})
 end
 end
 
