@@ -1,5 +1,6 @@
 -- The harvester
 	
+farmingNGH={}
     -- farming
 	farmingNG.harvester_names["farming:wheat_8"] = true 
 	farmingNG.harvester_names["farming:wheat_7"] = farmingNG.harvester_nofullg
@@ -65,6 +66,27 @@
 	farmingNG.harvester_names["farming_plus:corn"]	= true
 	farmingNG.harvester_names["farming_plus:cornb"]	= true
 	farmingNG.harvester_names["farming_plus:cornc"]	= true
+
+function farmingNGH:register_harvest(c,m,f)
+-- Ex. farming_nextgen_harvester:register_harvest("myMod:myCrop_",6,8)
+-- c=cropname with underscore
+-- m=mature stage (first with drops)
+-- f=fully grown stage (final stage)
+-- If set to harvest non-ripe crops, will iterate from mature to fully-grwon stages
+-- Otherwise registers only the mature crop
+-- If only one stage with drops, put same value for f & m
+	minetest.log("HARVESTER - Registering crop *"..c..tostring(f).."*")
+	farmingNG.harvester_names[c..tostring(f)] = true
+	local i
+	if farmingNG.harvester_nofullg then
+		for i = m, f-1 do
+			minetest.log("HARVESTER - Registering partial crop *"..c..tostring(f).."*")
+			farmingNG.harvester_names[c..tostring(i)] = true
+		end
+	end
+end
+
+
     
 if not farmingNG.havetech then
       farmingNG.harvester_charge_per_node = math.floor(65535 / farmingNG.harvester_max_charge * farmingNG.harvester_charge_per_node)

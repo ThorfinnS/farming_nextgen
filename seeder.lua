@@ -5,6 +5,8 @@
 --**** Maciej Kasatkin (RealBadAngel)
 --*******************************************************
 
+farmingNGS={}
+
 local farm_redo = false
       
 -- different values if technic not present
@@ -76,11 +78,10 @@ if minetest.get_modpath("compost") then
 	soil_nodenames["compost:garden_soil"] = true
 end
 
-
-function farmingng_add_soil_type(noder)
+function farmingNGS:add_soil_type(noder)
 --	Example of Use:
---		add optional dependency in other mod on "farming_nextgen"
---		farmingng_add_soil_type("myNewNodes:myNewSoilType")
+--		farming_nextgen:add_soil_type("myMod:myNewSoil")
+--		(add optional dependency in other mod on "farming_nextgen")
 
 	if(minetest.registered_items[noder] ~= nil) then
 		soil_nodenames[noder] = true
@@ -89,8 +90,6 @@ function farmingng_add_soil_type(noder)
 		minetest.log("Farming NextGen failed to add soil type "..noder)
 	end
 end
-
-
 
 
 
@@ -155,7 +154,13 @@ farmingNG.seeder_seed = {
 --	    {"farming:seed_cotton", "farming:seed_cotton"}
 	    
 }
-   
+
+function farmingNGS:register_crop(seed,crop1)
+-- Ex. farmingNGS:register_crop("myMod:myModsSeed","myMod:myModsCropStage1")
+	minetest.log("SEEDER - Registering crop "..crop1)
+	farmingNG.seeder_seed[#farmingNG.seeder_seed+1] = {seed, crop1}
+end
+
 -- wine and beans need climbing utilities
  
 farmingNG.seeder_utils = {
@@ -338,7 +343,9 @@ end
 function nextgen_register_seeder(in_name, in_desc, in_png, in_durability, in_recipe)
 -- Mostly self explanatory, I think, but in_durability is fraction of the default seeder.
 -- That is, 0.5 would mean half as many seeds could be planted with this tool.
-if(minetest.registered_items["farming_nextgen"..in_name] ~= nil) then
+
+--TODO Code durability
+if(minetest.registered_items["farmingNGS"..in_name] ~= nil) then
 	minetest.log("Error. Seeder already exists - "..in_name)
 else
 	minetest.log("Creating Seeder - "..in_name)
